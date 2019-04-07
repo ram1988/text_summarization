@@ -15,6 +15,7 @@ class SentenceEncoder:
 
     def buildRNN(self, x, scope):
         print(x)
+		#no of layers based on the no. of sentences
         x = tf.transpose(x, [1, 0, 2])
 
         with tf.name_scope("fw" + scope), tf.variable_scope("fw" + scope):
@@ -55,8 +56,6 @@ class SentenceEncoder:
 
 	def __model_fn(self,features, labels, mode, params):
 
-        self.embedded_chars1 = tf.nn.embedding_lookup(self.embedding_matrix, features,
-                                                      name="lookup1")  # batch_size x sent_length x embedding_size
 		self.logits = self.buildRNN(img_features)
 		loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=self.logits)
 		optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
