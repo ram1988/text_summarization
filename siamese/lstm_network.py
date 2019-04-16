@@ -16,7 +16,7 @@ from tensorflow.keras import layers
 		def buildRNN(self, x, scope):
 			print(x)
 			#bidirectional rnn to get the sentence vectors
-			#https://heartbeat.fritz.ai/using-a-keras-embedding-layer-to-handle-text-data-2c88dc019600
+			#https://blog.myyellowroad.com/unsupervised-sentence-representation-with-deep-learning-104b90079a93
 			model = Sequential()
 			model.add(Bidirectional(LSTM(10, return_sequences=True), input_shape=(5,
 																				  10)))
