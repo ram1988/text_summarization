@@ -1,89 +1,60 @@
+# TensorFlow and tf.keras
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow import keras
+import nltk
 
-
-
-#https://towardsdatascience.com/first-contact-with-tensorflow-estimator-69a5e072998d
-	#https://www.tensorflow.org/api_docs/python/tf/contrib/estimator/RNNEstimator
 	class SentenceEncoder:
 
-		def __init__(self,vector_size, auth_classes, embed_matrix):
-			self.vector_size = vector_size
-			self.auth_classes = auth_classes
-			self.embedding_matrix = embed_matrix
+		def __init__(self):
+			#dd
+
+		def preprocess(self,data):
+			sentences = []
+			for i in data['body'].values:
+				for j in nltk.sent_tokenize(i):
+					sentences.append(j)
+
+			#preprocess for keras
+			num_words=50000
+			maxlen=50
+			tokenizer = Tokenizer(num_words = num_words, split=' ')
+			tokenizer.fit_on_texts(sentences)
+			seqs = tokenizer.texts_to_sequences(sentenses)
+			pad_seqs = []
+			for i in seqs:
+				if len(i)>4:
+					pad_seqs.append(i)
+			pad_seqs = pad_sequences(pad_seqs,maxlen)
 
 
-		def buildRNN(self, x, scope):
-			print(x)
-			#bidirectional rnn to get the sentence vectors
-			#https://blog.myyellowroad.com/unsupervised-sentence-representation-with-deep-learning-104b90079a93
-			model = Sequential()
-			model.add(Bidirectional(LSTM(10, return_sequences=True), input_shape=(5,
-																				  10)))
-			model.add(Dense(5))
-			model.add(Activation('softmax'))
+		def trainModel(self, x, scope):
+			#The model
+			embed_dim = 150
+			latent_dim = 128
+			batch_size = 64
 
+			#### Encoder Model ####
+			encoder_inputs = Input(shape=(maxlen,), name='Encoder-Input')
+			emb_layer = Embedding(num_words, embed_dim,input_length = maxlen, name='Body-Word-Embedding', mask_zero=False)
+			# Word embeding for encoder (ex: Issue Body)
+			x = emb_layer(encoder_inputs)
+			bi_directional_encoder = Sequential()
+    		bi_directional_encoder.add(Bidirectional(LSTM(10, return_sequences=True, name='Encoder-Last-LSTM'), input_shape=(5,10)))
 
+			encoder_model = Model(inputs=encoder_inputs, outputs=bi_directional_encoder, name='Encoder-Model')
+			seq2seq_encoder_out = encoder_model(encoder_inputs)
+			#### Decoder Model ####
+			decoded = RepeatVector(maxlen)(seq2seq_encoder_out)
+			decoder_gru = GRU(latent_dim, return_sequences=True, name='Decoder-GRU-before')
+			decoder_gru_output = decoder_gru(decoded)
+			decoder_dense = Dense(num_words, activation='softmax', name='Final-Output-Dense-before')
+			decoder_outputs = decoder_dense(decoder_gru_output)
+			#### Seq2Seq Model ####
+			#seq2seq_decoder_out = decoder_model([decoder_inputs, seq2seq_encoder_out])
+			seq2seq_Model = Model(encoder_inputs,decoder_outputs )
+			seq2seq_Model.compile(optimizer=optimizers.Nadam(lr=0.001), loss='sparse_categorical_crossentropy')
+			history = seq2seq_Model.fit(pad_seqs, np.expand_dims(pad_seqs, -1),
+					batch_size=batch_size,
+					epochs=5,
+					validation_split=0.12)
 
-		def __model_fn(self,features, labels, mode, params):
-
-			self.logits = self.buildRNN(features)
-			loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=self.logits)
-			optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
-			train_op = optimizer.minimize(
-				loss=loss,
-				global_step=tf.train.get_or_create_global_step())
-
-
-			if mode == tf.estimator.ModeKeys.TRAIN:
-				return self.__train_model_fn(labels, mode, params, self.logits, loss, train_op)
-			elif mode == tf.estimator.ModeKeys.EVAL:
-				print("evaluate...111")
-				obj = self.__eval_model_fn(labels,self.logits,loss)
-				print("val ends")
-				return obj
-
-
-		def __train_model_fn(self,image_labels,mode,params,logits,loss,train_op):
-			return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, loss=loss, train_op=train_op)
-
-
-		def __eval_model_fn(self,image_labels,logits,loss):
-			image_labels = tf.cast(image_labels, tf.float32)
-			print("eval model...")
-			print(logits)
-			#loss = tf.losses.softmax_cross_entropy(onehot_labels=image_labels, logits=logits)
-			# Add evaluation metrics (for EVAL mode)
-			predictions = {
-				# Generate predictions (for PREDICT and EVAL mode)
-				"classes": tf.argmax(input=logits, axis=1),
-				# Add `softmax_tensor` to the graph. It is used for PREDICT and by the
-				# `logging_hook`.
-				"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
-			}
-			print("predictions....")
-			eval_metric_ops = {
-					"accuracy": tf.metrics.accuracy(
-						labels=tf.argmax(input=image_labels, axis=1), predictions=predictions["classes"])}
-			print(image_labels)
-			return tf.estimator.EstimatorSpec(
-					mode=tf.estimator.ModeKeys.EVAL, loss=loss, eval_metric_ops=eval_metric_ops)
-
-		def __predict_model_fn(self,logits):
-			print("PRED....")
-			print(logits)
-			predictions = {
-					"classes": tf.argmax(logits, axis=1),
-					"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
-				}
-			return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.PREDICT,
-											  predictions=predictions,
-											  export_outputs={
-												  'classify': tf.estimator.export.PredictOutput(predictions)
-											  })
-
-
-		def get_classifier_model(self):
-			print("get the model...")
-			return tf.estimator.Estimator(
-				model_fn = self.__model_fn, model_dir="/tmp/cnn_data")
