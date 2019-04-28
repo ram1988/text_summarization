@@ -17,7 +17,7 @@ PADDING = "<PAD>"
 main_vocab = {UNKNOWN:0,PADDING:1}
 
 def loadQuestionsFromTrainDF():
-    df = pd.read_csv("../data/train.csv")
+    df = pd.read_csv("../train.csv")
     return df["text"],df["author"]
 
 def loadQuestionsFromTestDF():
@@ -37,12 +37,6 @@ def __prepareEmbeddingMatrix(vocabulary):
     return embedding_matrix
 
 def prepareTrainData():
-
-    train_data = pickle.load( open("traindata.pkl", "rb"))
-
-    if train_data:
-        return train_data[0], train_data[1], train_data[2], train_data[3]
-
 
     q, labels = loadQuestionsFromTrainDF()
     test_ids, test_data = loadQuestionsFromTestDF()
@@ -135,38 +129,8 @@ def runModelWithEmbed():
 
     print(np.asarray(train_q1).shape)
     vocab_size = len(main_vocab)
-    siamese_nn = LSTMNet(EMBEDDING_DIM, MAX_LENGTH, vocab_size, embedding_matrix)
-    siamese_nn.trainModel(train_question1, train_labels)
-    siamese_nn.validateModel(validate_question1, validate_labels)
+    siamese_nn = SentenceEncoder()
+    siamese_nn.train(train_question1, train_labels)
 
 
-    print("testing..")
-    # test_data = test_data[0:10000]
-    test_data = test_data[1]
-    test_q1 = [rec[0] for rec in test_data]
-
-    test_q1 = sequence.pad_sequences(test_q1, maxlen=MAX_LENGTH)
-
-    predictions = siamese_nn.predict(test_q1)
-    pickle.dump(predictions, open("result.pkl", "wb"))
-    #generateResult()
-
-def generateResult():
-    result = pickle.load(open("result.pkl", "rb"))
-    print(len(result))
-    print(np.asarray(result).shape)
-
-    train_data, test_data, labels, embedding_matrix = prepareTrainData()
-    test_ids = test_data[0]
-
-    with open("predicted.csv", "a+") as op_file:
-        op_file.write("id,EAP,HPL,MWS"+"\n")
-        for i,id in enumerate(test_ids):
-            num1 = '{:06.4f}'.format(result[i][0])
-            num2 = '{:06.4f}'.format(result[i][1])
-            num3 = '{:06.4f}'.format(result[i][2])
-            op_file.write(id+","+str(num1)+","+str(num2)+","+str(num3)+"\n")
-
-
-#runModelWithEmbed()
-generateResult()
+runModelWithEmbed()
