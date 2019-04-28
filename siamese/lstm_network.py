@@ -1,7 +1,7 @@
 # TensorFlow and tf.keras
 import tensorflow as tf
-from tf.keras.layers import *
-from tf.keras.models import *
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import *
 
 
 

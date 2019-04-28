@@ -6,7 +6,7 @@ import spacy
 import pickle
 from collections import Counter
 from nltk import word_tokenize
-from siamese.lstm_network import *
+from lstm_network import *
 
 MAX_NB_WORDS = 200000
 EMBEDDING_DIM = 384
@@ -17,7 +17,7 @@ PADDING = "<PAD>"
 main_vocab = {UNKNOWN:0,PADDING:1}
 
 def loadQuestionsFromTrainDF():
-    df = pd.read_csv("../train.csv")
+    df = pd.read_csv("train.csv")
     return df["text"],df["author"]
 
 def loadQuestionsFromTestDF():
@@ -39,7 +39,7 @@ def __prepareEmbeddingMatrix(vocabulary):
 def prepareTrainData():
 
     q, labels = loadQuestionsFromTrainDF()
-    test_ids, test_data = loadQuestionsFromTestDF()
+    #test_ids, test_data = loadQuestionsFromTestDF()
 
     tokenized_train_data = []
     vocabularies = []
@@ -54,6 +54,7 @@ def prepareTrainData():
         tokenized_train_data.append([token1])
         vocabularies.extend(token1)
 
+    '''
     tokenized_test_data = []
     for i in range(0, len(test_data)):
         try:
@@ -62,7 +63,7 @@ def prepareTrainData():
             continue
         token1 = word_tokenize(token1.strip().lower())
         tokenized_test_data.append([token1])
-
+    '''
 
     vocabCounter = Counter(vocabularies).most_common()
     idx = len(main_vocab)
@@ -80,18 +81,20 @@ def prepareTrainData():
         qu1 = [main_vocab[tok] if tok in main_vocab else main_vocab[UNKNOWN] for tok in qu1]
         tokenized_train_data[i] = [qu1]
 
+    '''
     for i, test_record in enumerate(tokenized_test_data):
         qu1 = test_record[0]
         qu1 = [main_vocab[tok] if tok in main_vocab else main_vocab[UNKNOWN] for tok in qu1]
         tokenized_test_data[i] = [qu1]
+    '''
 
     print("prep test data")
-    embedding_matrix = __prepareEmbeddingMatrix(main_vocab)
-    final_input = (tokenized_train_data, (test_ids,tokenized_test_data) , labels, embedding_matrix)
-    pickle.dump(final_input, open("traindata.pkl", "wb"))
+    #embedding_matrix = __prepareEmbeddingMatrix(main_vocab)
+    #final_input = (tokenized_train_data, (test_ids,tokenized_test_data) , labels, embedding_matrix)
+    #pickle.dump(final_input, open("traindata.pkl", "wb"))
     pickle.dump(main_vocab, open("main_vocab.pkl", "wb"))
 
-    return tokenized_train_data, (test_ids,tokenized_test_data), labels, embedding_matrix
+    return tokenized_train_data, labels
 
 
 def runModelWithEmbed():
@@ -99,7 +102,7 @@ def runModelWithEmbed():
 
     print("train and tesst")
 
-    train_data, test_data, labels, embedding_matrix = prepareTrainData()
+    train_data, labels = prepareTrainData()
 
 
     for i,lbl in enumerate(labels):
