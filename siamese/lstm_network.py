@@ -14,15 +14,37 @@ class SentenceEncoder:
         # bidirectional rnn to get the sentence vectors
         # https://blog.myyellowroad.com/unsupervised-sentence-representation-with-deep-learning-104b90079a93
         # https://medium.com/tensorflow/standardizing-on-keras-guidance-on-high-level-apis-in-tensorflow-2-0-bad2b04c819a
+        '''
         model = Sequential()
-        model.add(Embedding(50000, 100, input_length=50))
-        model.add(Bidirectional(LSTM(10, return_sequences=True), input_shape=(5, 10)))
+        model.add(Embedding(50000, 100, input_length=30))
+        model.add(Bidirectional(LSTM(10, return_sequences=True), input_shape=(30, 100)))
         model.add(Dense(5))
         model.add(Activation('softmax'))
+        '''
+        encoder_model = tf.keras.Sequential([
+            tf.keras.layers.Embedding(50000, 64),
+            tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))
+        ])
 
-        return model
+        target_model = tf.keras.Sequential([
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(3, activation='softmax')
+        ])
+
+        total_model = tf.keras.Sequential([
+            encoder_model,target_model
+        ])
+
+        return encoder_model,total_model
 
     def train(self, x_train, y_train):
-        model = self.buildRNN(x_train)
-        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-        model.fit(x_train, y_train, epochs=5)
+        encoder, model = self.buildRNN(x_train)
+        print(encoder)
+        y_train = tf.keras.utils.to_categorical(y_train,num_classes=3)
+        print(y_train)
+        model.compile(loss='MSE',
+                      optimizer='adam',
+                      metrics=['accuracy'])
+        model.fit(x_train, y_train, epochs=1)
+        op = encoder.predict(x_train[0:10])
+        print(op.shape)

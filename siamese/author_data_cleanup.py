@@ -133,6 +133,8 @@ def runModelWithEmbed():
     print(np.asarray(train_q1).shape)
     vocab_size = len(main_vocab)
     siamese_nn = SentenceEncoder()
+    print(len(train_question1))
+    print(len(train_labels))
     siamese_nn.train(train_question1, train_labels)
 
 
