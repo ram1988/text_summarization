@@ -7,6 +7,7 @@ import pickle
 from collections import Counter
 from nltk import word_tokenize
 from lstm_network import *
+from kmeans_clusterer import TextSummarizer
 
 MAX_NB_WORDS = 200000
 EMBEDDING_DIM = 384
@@ -15,6 +16,7 @@ UNKNOWN = "<UNK>"
 PADDING = "<PAD>"
 
 main_vocab = {UNKNOWN:0,PADDING:1}
+pattern = "[^0-9a-zA-Z\\s\\?\\.,]"
 
 def loadQuestionsFromTrainDF():
     df = pd.read_csv("train.csv")
@@ -43,7 +45,6 @@ def prepareTrainData():
 
     tokenized_train_data = []
     vocabularies = []
-    pattern = "[^0-9a-zA-Z\\s\\?\\.,]"
     print(len(q))
     for i in range(0, len(q)):
         try:
@@ -53,17 +54,6 @@ def prepareTrainData():
         token1 = word_tokenize(token1.strip().lower())
         tokenized_train_data.append([token1])
         vocabularies.extend(token1)
-
-    '''
-    tokenized_test_data = []
-    for i in range(0, len(test_data)):
-        try:
-            token1 = re.sub(pattern, " ", test_data[i])
-        except UnicodeDecodeError:
-            continue
-        token1 = word_tokenize(token1.strip().lower())
-        tokenized_test_data.append([token1])
-    '''
 
     vocabCounter = Counter(vocabularies).most_common()
     idx = len(main_vocab)
@@ -81,20 +71,24 @@ def prepareTrainData():
         qu1 = [main_vocab[tok] if tok in main_vocab else main_vocab[UNKNOWN] for tok in qu1]
         tokenized_train_data[i] = [qu1]
 
-    '''
+    return tokenized_train_data, labels
+
+def prepareTestSentences(test_data):
+    tokenized_test_data = []
+    for i in range(0, len(test_data)):
+        try:
+            token1 = re.sub(pattern, " ", test_data[i])
+        except UnicodeDecodeError:
+            continue
+        token1 = word_tokenize(token1.strip().lower())
+        tokenized_test_data.append([token1])
+
     for i, test_record in enumerate(tokenized_test_data):
         qu1 = test_record[0]
         qu1 = [main_vocab[tok] if tok in main_vocab else main_vocab[UNKNOWN] for tok in qu1]
         tokenized_test_data[i] = [qu1]
-    '''
 
-    print("prep test data")
-    #embedding_matrix = __prepareEmbeddingMatrix(main_vocab)
-    #final_input = (tokenized_train_data, (test_ids,tokenized_test_data) , labels, embedding_matrix)
-    #pickle.dump(final_input, open("traindata.pkl", "wb"))
-    pickle.dump(main_vocab, open("main_vocab.pkl", "wb"))
-
-    return tokenized_train_data, labels
+    return tokenized_test_data
 
 
 def runModelWithEmbed():
@@ -135,7 +129,17 @@ def runModelWithEmbed():
     siamese_nn = SentenceEncoder()
     print(len(train_question1))
     print(len(train_labels))
-    siamese_nn.train(train_question1, train_labels)
+    encoder = siamese_nn.getEncoder(train_question1, train_labels)
 
+
+    test_text = "The task was to perform Text Summarization on emails in languages such as English, Danish, French, etc. using Python. Most publicly available datasets for text summarization are for long documents and articles. As the structure of long documents and articles significantly differs from that of short emails, models trained with supervised methods may suffer from poor domain adaptation. Therefore, I chose to explore unsupervised methods for unbiased prediction of summaries. Now, let us try to understand the various steps which constitute the model pipeline."
+    from nltk.tokenize import sent_tokenize
+    texts = sent_tokenize(test_text)
+    test_text = prepareTestSentences(texts)
+    op = encoder.predict(test_text)
+    print(op.shape)
+    summarizer = TextSummarizer()
+    summary = summarizer.summarize(texts,op)
+    print(summary)
 
 runModelWithEmbed()

@@ -1,0 +1,34 @@
+from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances_argmin_min
+
+import numpy as np
+
+#https://stackoverflow.com/questions/26795535/output-50-samples-closest-to-each-cluster-center-using-scikit-learn-k-means-libr
+#https://stackabuse.com/k-means-clustering-with-scikit-learn/
+class TextSummarizer:
+    def summarize(self,sentences,sentence_vectors):
+        n_clusters = int(np.ceil(len(sentence_vectors) ** 0.5))
+        kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+        kmeans = kmeans.fit(sentence_vectors)
+        avg = []
+        closest = []
+        for j in range(n_clusters):
+            idx = np.where(kmeans.labels_ == j)[0]
+            avg.append(np.mean(idx))
+        closest, _ = pairwise_distances_argmin_min(kmeans.cluster_centers_, \
+                                                   sentence_vectors)
+        print("summ....")
+        print(len(sentence_vectors))
+        print(n_clusters)
+        print(closest)
+        print(avg)
+        ordering = sorted(range(n_clusters), key=lambda k: avg[k])
+        print(ordering)
+        summary = ' '.join([sentences[closest[idx]] for idx in ordering])
+
+        print('Clustering Finished')
+        print(summary)
+        return summary
+
+
+

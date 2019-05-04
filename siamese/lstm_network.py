@@ -37,7 +37,7 @@ class SentenceEncoder:
 
         return encoder_model,total_model
 
-    def train(self, x_train, y_train):
+    def getEncoder(self, x_train, y_train):
         encoder, model = self.buildRNN(x_train)
         print(encoder)
         y_train = tf.keras.utils.to_categorical(y_train,num_classes=3)
@@ -46,5 +46,4 @@ class SentenceEncoder:
                       optimizer='adam',
                       metrics=['accuracy'])
         model.fit(x_train, y_train, epochs=1)
-        op = encoder.predict(x_train[0:10])
-        print(op.shape)
+        return encoder
