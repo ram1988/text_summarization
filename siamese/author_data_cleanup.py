@@ -126,8 +126,12 @@ def runModelWithEmbed():
     print(len(train_labels))
     encoder = siamese_nn.getEncoder(train_question1, train_labels)
 
+    test_text = """Former President Barack Obama was stung and brooding in the aftermath of Hillary Clinton's loss to President Donald Trump, according to new sections of a book released next week, and partly blamed his former secretary of state for the loss.
+In new chapters of "Obama: The Call of History," New York Times correspondent Peter Baker depicts the former president questioning his legacy and personally insulted that voters elected Trump instead of Clinton, whom he campaigned for heavily in the closing days of the 2016 contest.
+"This stings," Obama told staffers during an Oval Office meeting in the weeks after the election, a source told David Remnick of The New Yorker. "This hurts."
+Baker describes Obama as deeply skeptical of Trump and mystified at why voters chose him over the more experienced Clinton. And he writes that Obama and some of his aides faulted Clinton and her campaign decisions for the outcome, which shocked the then-president.
+"To Obama and his team, however, the real blame lay squarely with Clinton," Baker writes in the book. "She was the one who could not translate his strong record and healthy economy into a winning message. Never mind that Trump essentially ran the same playbook against Clinton that Obama did eight years earlier, portraying her as a corrupt exemplar of the status quo. She brought many of her troubles on herself."""
 
-    test_text = "The task was to perform Text Summarization on emails in languages such as English, Danish, French, etc. using Python. Most publicly available datasets for text summarization are for long documents and articles. As the structure of long documents and articles significantly differs from that of short emails, models trained with supervised methods may suffer from poor domain adaptation. Therefore, I chose to explore unsupervised methods for unbiased prediction of summaries. Now, let us try to understand the various steps which constitute the model pipeline."
     from nltk.tokenize import sent_tokenize
     texts = sent_tokenize(test_text)
     print(texts)

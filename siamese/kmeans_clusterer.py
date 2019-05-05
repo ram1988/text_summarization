@@ -10,24 +10,24 @@ class TextSummarizer:
         n_clusters = int(np.ceil(len(sentence_vectors) ** 0.5))
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
         kmeans = kmeans.fit(sentence_vectors)
-        avg = []
         closest = []
+        '''
         for j in range(n_clusters):
             idx = np.where(kmeans.labels_ == j)[0]
             avg.append(np.mean(idx))
+        '''
         closest, _ = pairwise_distances_argmin_min(kmeans.cluster_centers_, \
                                                    sentence_vectors)
         print("summ....")
         print(len(sentence_vectors))
         print(n_clusters)
         print(closest)
-        print(avg)
-        ordering = sorted(range(n_clusters), key=lambda k: avg[k])
-        print(ordering)
-        summary = ' '.join([sentences[closest[idx]] for idx in ordering])
 
-        print('Clustering Finished')
-        print(summary)
+        closest = sorted(closest)
+
+        summary = ' '.join([sentences[idx] for idx in closest])
+
+        print('Summarization Finished')
         return summary
 
 
