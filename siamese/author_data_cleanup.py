@@ -108,21 +108,16 @@ def runModelWithEmbed():
                 labels[i] = 2
 
 
-    print(labels)
-
     train_q1 = [rec[0] for rec in train_data]
+    print(train_q1)
     train_q1 = sequence.pad_sequences(train_q1, maxlen=MAX_LENGTH)
 
     print(train_q1.shape)
 
-    train_no = 18000
     train_q1 = np.asarray(train_q1)
 
     train_question1 = train_q1[0:]
     train_labels = labels[0:]
-
-    validate_question1 = train_q1[train_no:]
-    validate_labels = labels[train_no:]
 
     print(np.asarray(train_q1).shape)
     vocab_size = len(main_vocab)
@@ -135,7 +130,12 @@ def runModelWithEmbed():
     test_text = "The task was to perform Text Summarization on emails in languages such as English, Danish, French, etc. using Python. Most publicly available datasets for text summarization are for long documents and articles. As the structure of long documents and articles significantly differs from that of short emails, models trained with supervised methods may suffer from poor domain adaptation. Therefore, I chose to explore unsupervised methods for unbiased prediction of summaries. Now, let us try to understand the various steps which constitute the model pipeline."
     from nltk.tokenize import sent_tokenize
     texts = sent_tokenize(test_text)
+    print(texts)
     test_text = prepareTestSentences(texts)
+    test_text = [rec[0] for rec in test_text]
+    print(test_text)
+    test_text = sequence.pad_sequences(test_text, maxlen=MAX_LENGTH)
+    print(test_text)
     op = encoder.predict(test_text)
     print(op.shape)
     summarizer = TextSummarizer()
