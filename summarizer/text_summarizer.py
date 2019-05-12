@@ -4,10 +4,14 @@ import pandas as pd
 import numpy as np
 import spacy
 import pickle
+import tensorflow as tf
 from collections import Counter
 from nltk import word_tokenize
-from lstm_network import *
+from keras.preprocessing import sequence
+
+from sentence_encoder import *
 from kmeans_clusterer import TextSummarizer
+
 
 MAX_NB_WORDS = 200000
 EMBEDDING_DIM = 384
@@ -75,6 +79,7 @@ def prepareTrainData():
 
 def prepareTestSentences(test_data):
     tokenized_test_data = []
+    main_vocab = pickle.load(open("main_vocab.pkl","rb"))
     for i in range(0, len(test_data)):
         try:
             token1 = re.sub(pattern, " ", test_data[i])
@@ -91,8 +96,7 @@ def prepareTestSentences(test_data):
     return tokenized_test_data
 
 
-def runModelWithEmbed():
-    from keras.preprocessing import sequence
+def getEncoder():
 
     print("train and tesst")
 
@@ -125,6 +129,11 @@ def runModelWithEmbed():
     print(len(train_question1))
     print(len(train_labels))
     encoder = siamese_nn.getEncoder(train_question1, train_labels)
+    encoder.save('encoder_model.pkl')
+    pickle.dump(main_vocab,open("main_vocab.pkl","wb"))
+
+
+def summarize_text():
 
     test_text = """Former President Barack Obama was stung and brooding in the aftermath of Hillary Clinton's loss to President Donald Trump, according to new sections of a book released next week, and partly blamed his former secretary of state for the loss.
 In new chapters of "Obama: The Call of History," New York Times correspondent Peter Baker depicts the former president questioning his legacy and personally insulted that voters elected Trump instead of Clinton, whom he campaigned for heavily in the closing days of the 2016 contest.
@@ -140,10 +149,13 @@ Baker describes Obama as deeply skeptical of Trump and mystified at why voters c
     print(test_text)
     test_text = sequence.pad_sequences(test_text, maxlen=MAX_LENGTH)
     print(test_text)
-    op = encoder.predict(test_text)
+
+    encoder_model = tf.keras.models.load_model('encoder_model.pkl')
+    op = encoder_model.predict(test_text)
     print(op.shape)
     summarizer = TextSummarizer()
     summary = summarizer.summarize(texts,op)
     print(summary)
 
-runModelWithEmbed()
+#getEncoder()
+summarize_text()
