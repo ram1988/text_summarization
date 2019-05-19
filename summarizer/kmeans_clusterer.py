@@ -6,7 +6,7 @@ import numpy as np
 #https://stackoverflow.com/questions/26795535/output-50-samples-closest-to-each-cluster-center-using-scikit-learn-k-means-libr
 #https://stackabuse.com/k-means-clustering-with-scikit-learn/
 class TextSummarizer:
-    def summarize(self,sentences,sentence_vectors):
+    def summarize(self,sentences,sentence_vectors,top_n):
         n_clusters = int(np.ceil(len(sentence_vectors) ** 0.5))
         kmeans = KMeans(n_clusters=n_clusters, random_state=0)
         kmeans = kmeans.fit(sentence_vectors)
@@ -24,6 +24,9 @@ class TextSummarizer:
         print(closest)
 
         closest = sorted(closest)
+
+        if top_n < len(closest):
+            closest = closest[0:top_n]
 
         summary = ' '.join([sentences[idx] for idx in closest])
 

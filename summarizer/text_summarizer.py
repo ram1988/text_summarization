@@ -141,6 +141,7 @@ In new chapters of "Obama: The Call of History," New York Times correspondent Pe
 Baker describes Obama as deeply skeptical of Trump and mystified at why voters chose him over the more experienced Clinton. And he writes that Obama and some of his aides faulted Clinton and her campaign decisions for the outcome, which shocked the then-president.
 "To Obama and his team, however, the real blame lay squarely with Clinton," Baker writes in the book. "She was the one who could not translate his strong record and healthy economy into a winning message. Never mind that Trump essentially ran the same playbook against Clinton that Obama did eight years earlier, portraying her as a corrupt exemplar of the status quo. She brought many of her troubles on herself."""
 
+    top_n = 2
     from nltk.tokenize import sent_tokenize
     texts = sent_tokenize(test_text)
     print(texts)
@@ -154,7 +155,7 @@ Baker describes Obama as deeply skeptical of Trump and mystified at why voters c
     op = encoder_model.predict(test_text)
     print(op.shape)
     summarizer = TextSummarizer()
-    summary = summarizer.summarize(texts,op)
+    summary = summarizer.summarize(texts,op,top_n)
     print(summary)
 
 #getEncoder()
