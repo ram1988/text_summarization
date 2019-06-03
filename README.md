@@ -1,3 +1,2 @@
-# spooky_author_classification
+# Text Summarization
 
-RNN model comprising dynamic bi-directional RNN and learning decay
