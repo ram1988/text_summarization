@@ -22,7 +22,7 @@ class SentenceEncoder:
         model.add(Activation('softmax'))
         '''
         encoder_model = tf.keras.Sequential([
-            tf.keras.layers.Embedding(50000, 64),
+            tf.keras.layers.Embedding(200000, 64),
             tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64))
         ])
 
